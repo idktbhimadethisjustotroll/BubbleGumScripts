@@ -28,32 +28,53 @@ OffButton.TextSize = 24
 
 -- // Functionality
 local running = false
-local rerollRemote = nil
+local rerollButton = nil
+local enchantText = nil  -- We'll use this to detect the enchant type
 
--- Optional: Try to auto-detect remote
-for _, v in pairs(getgc(true)) do
-    if typeof(v) == "function" and getinfo(v).name == "RerollEnchant" then
-        rerollRemote = v
+-- Find the reroll button (adjust this based on the button's location or name)
+for _, obj in pairs(game:GetService("Workspace"):GetDescendants()) do
+    if obj:IsA("TextButton") and obj.Text == "Reroll All" then  -- Adjust based on actual button text
+        rerollButton = obj
         break
     end
 end
 
--- Fallback (you can set it manually if needed)
--- rerollRemote = game:GetService("ReplicatedStorage"):WaitForChild("RerollEnchant")
+if not rerollButton then
+    warn("Could not find 'Reroll All' button!")
+    return
+end
+
+-- Find the enchant text (adjust this based on your game's UI)
+local function checkEnchant()
+    -- You should replace this with the proper method of getting the currently equipped enchant.
+    -- Example: Search for a TextLabel or TextButton with the enchantment name.
+    enchantText = game:GetService("PlayerGui"):FindFirstChild("EnchantLabel")  -- Change the path as necessary
+    if enchantText and enchantText.Text == "Team Up V" then
+        return true  -- Team Up V found, auto-stop
+    end
+    return false
+end
 
 OnButton.MouseButton1Click:Connect(function()
-    if running or not rerollRemote then return end
+    if running then return end
     running = true
     print("🔄 Auto Enchant Started")
 
     spawn(function()
         while running do
-            -- This assumes rerolling happens based on currently selected pet
-            -- If not, you can modify it to accept a pet ID or name
+            -- Simulate button click
             pcall(function()
-                rerollRemote()
+                rerollButton.MouseButton1Click:Fire()  -- Simulating the click event
             end)
-            wait(1.5) -- adjust if needed
+
+            -- Check if the enchant "Team Up V" is found
+            if checkEnchant() then
+                running = false  -- Stop the script
+                print("🛑 Stopped after obtaining 'Team Up V' enchant.")
+                break
+            end
+
+            wait(1.5) -- adjust the wait time as needed
         end
     end)
 end)
