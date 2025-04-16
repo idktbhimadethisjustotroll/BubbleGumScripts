@@ -1,39 +1,11 @@
--- // GUI Setup
-local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-local ToggleFrame = Instance.new("Frame", ScreenGui)
-local OnButton = Instance.new("TextButton", ToggleFrame)
-local OffButton = Instance.new("TextButton", ToggleFrame)
-
-ScreenGui.Name = "AutoEnchantGUI"
-ToggleFrame.Size = UDim2.new(0, 200, 0, 100)
-ToggleFrame.Position = UDim2.new(0, 20, 0, 100)
-ToggleFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ToggleFrame.BorderSizePixel = 0
-
-OnButton.Size = UDim2.new(0.5, -5, 1, 0)
-OnButton.Position = UDim2.new(0, 0, 0, 0)
-OnButton.Text = "ON"
-OnButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-OnButton.TextColor3 = Color3.new(1, 1, 1)
-OnButton.Font = Enum.Font.SourceSansBold
-OnButton.TextSize = 24
-
-OffButton.Size = UDim2.new(0.5, -5, 1, 0)
-OffButton.Position = UDim2.new(0.5, 5, 0, 0)
-OffButton.Text = "OFF"
-OffButton.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
-OffButton.TextColor3 = Color3.new(1, 1, 1)
-OffButton.Font = Enum.Font.SourceSansBold
-OffButton.TextSize = 24
-
--- // Functionality
+-- Functionality to Auto-Reroll
 local running = false
 local rerollButton = nil
 local enchantText = nil  -- We'll use this to detect the enchant type
 
 -- Find the reroll button (adjust this based on the button's location or name)
 for _, obj in pairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
-    if obj:IsA("TextButton") and obj.Text == "Reroll All" then  -- Adjust based on actual button text
+    if obj:IsA("TextButton") and obj.Text == "Reroll All" then
         rerollButton = obj
         print("Found Reroll Button!")
         break
@@ -59,31 +31,38 @@ local function checkEnchant()
     return false
 end
 
-OnButton.MouseButton1Click:Connect(function()
-    if running then return end
-    running = true
-    print("🔄 Auto Enchant Started")
+-- Start rerolling automatically when detected
+spawn(function()
+    while true do
+        if rerollButton then
+            -- Start rerolling automatically
+            if not running then
+                running = true
+                print("🔄 Auto Reroll Started")
 
-    spawn(function()
-        while running do
-            -- Simulate button click
-            pcall(function()
-                rerollButton.MouseButton1Click:Fire()  -- Simulating the click event
-            end)
+                -- Continue rerolling
+                while running do
+                    pcall(function()
+                        rerollButton.MouseButton1Click:Fire()  -- Simulate clicking the reroll button
+                    end)
 
-            -- Check if the enchant "Team Up V" is found
-            if checkEnchant() then
-                running = false  -- Stop the script
-                print("🛑 Stopped after obtaining 'Team Up V' enchant.")
-                break
+                    -- Stop rerolling when "Team Up V" is found
+                    if checkEnchant() then
+                        running = false
+                        print("🛑 Stopped after obtaining 'Team Up V' enchant.")
+                    end
+
+                    wait(1.5)  -- Adjust the wait time as needed
+                end
             end
-
-            wait(1.5) -- adjust the wait time as needed
         end
-    end)
-end)
 
-OffButton.MouseButton1Click:Connect(function()
-    running = false
-    print("🛑 Auto Enchant Stopped")
+        -- Check if a different pet enchant is selected, restart rerolling if needed
+        if not checkEnchant() and running then
+            print("🔄 Restarting rerolling because a different pet was selected without 'Team Up V'.")
+            running = false
+        end
+
+        wait(1)  -- Check every second if rerolling should continue or restart
+    end
 end)
