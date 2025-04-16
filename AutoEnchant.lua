@@ -32,9 +32,10 @@ local rerollButton = nil
 local enchantText = nil  -- We'll use this to detect the enchant type
 
 -- Find the reroll button (adjust this based on the button's location or name)
-for _, obj in pairs(game:GetService("Workspace"):GetDescendants()) do
+for _, obj in pairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
     if obj:IsA("TextButton") and obj.Text == "Reroll All" then  -- Adjust based on actual button text
         rerollButton = obj
+        print("Found Reroll Button!")
         break
     end
 end
@@ -49,8 +50,11 @@ local function checkEnchant()
     -- You should replace this with the proper method of getting the currently equipped enchant.
     -- Example: Search for a TextLabel or TextButton with the enchantment name.
     enchantText = game:GetService("PlayerGui"):FindFirstChild("EnchantLabel")  -- Change the path as necessary
-    if enchantText and enchantText.Text == "Team Up V" then
-        return true  -- Team Up V found, auto-stop
+    if enchantText then
+        print("Current enchant: " .. enchantText.Text)  -- Debugging print statement
+        if enchantText.Text == "Team Up V" then
+            return true  -- Team Up V found, auto-stop
+        end
     end
     return false
 end
